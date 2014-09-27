@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<applications xmlns="http://www.wabacus.com"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.wabacus.com ../../xsd/wabacus.applications.xsd">
+
+	<!-- 2014-9-27 利润统计 -->
+	<page id="ufdata01_profit_statistics" js="/webresources/script/validate.js,/js/inputValidate.js">
+		<header>${top.header}</header>
+		<vpanel id="common_vpanel" width="1200px" align="center">
+			<report id="title" extends="title.report1"></report>
+			<report id="report1" type="list" pagesize="-1" title="华德单车利润统计"
+				titlealign="center">
+				<interceptor>
+					<imports>
+						<import></import>
+					</imports>
+					<preaction>
+					<![CDATA[
+					String txt_ccus_id=rrequest.getStringAttribute("txt_ccus_id",""); 
+					if(txt_ccus_id.equals(""))
+					{//如果两个条件框都没有输入值，则延迟加载
+						rrequest.setAttribute("report1_lazydisplaydata","true");
+						rrequest.setAttribute("report2_lazydisplaydata","true");
+					}
+					]]>
+					</preaction>
+				</interceptor>
+				<buttons>
+					<button name="btn1" extends="${richexcel.button.default}"
+						label="导出Excel">report1;report2</button>
+				</buttons>
+				<display dataheader="">
+					<col column="ccuslabel" label="ccuslabel"
+						valuestyleproperty="colspan='2' style='background:#D7DFF6'" width="160px"
+						align="right"></col>
+					<col column="ccusname" label="ccusname" valuestyleproperty="colspan='6'"
+						align="left"></col>
+				</display>
+				<sql preparedstatement="false" datasource="ufdata_003_2014">
+					<select>
+						<value><![CDATA[
+				select '客户名称：' as ccuslabel,ccusname from customer
+				 WHERE {#condition#}
+
+						]]></value>
+						<condition name="txt_ccus_id" label="客户编号">
+							<value>
+								<![CDATA[ ccuscode = '#data#' ]]>
+							</value>
+						</condition>
+					</select>
+				</sql>
+			</report>
+			<report id="report2" title="" titlealign="center" type="list"
+				celldrag="0" pagesize="-1">
+				<display pagecolselect="false">
+					<col column="{sequence:1}" label="序号" width="60px"></col>
+					<col column="dbill_date" label="凭证周期" width="100px"></col>
+					<col column="ino" label="凭证编号" width="100px"></col>
+					<col column="ccode" label="科目编号" width="100px" align="left"></col>
+					<col column="ccode_name" label="科目名称" width="100px" align="left"></col>
+					<col column="cdigest" label="摘要" align="left"></col>
+					<col column="md" label="借方金额" width="120px" align="right"></col>
+					<col column="mc" label="贷方金额" width="120px" align="right"></col>
+				</display>
+				<subdisplay>
+					<statitems>
+						<statitem value="sum(cast(md as float))" property="item1"></statitem>
+						<statitem value="sum(cast(mc as float))" property="item2"></statitem>
+						<statitem value="sum(cast(mc as float))-sum(cast(md as float))"
+							property="item3"></statitem>
+					</statitems>
+					<subrow>
+						<subcol property="prop1" colspan="6" valuestyleproperty="align='right'"></subcol>
+						<subcol property="prop2" colspan="1" valuestyleproperty="align='right'"></subcol>
+						<subcol property="prop3" colspan="1" valuestyleproperty="align='right'"></subcol>
+					</subrow>
+					<subrow>
+						<subcol property="prop4" colspan="6" valuestyleproperty="align='right'"></subcol>
+						<subcol property="prop5" colspan="2" valuestyleproperty="align='right'"></subcol>
+					</subrow>
+
+					<format>
+						<imports>
+							<import>com.wabacus.util.*</import>
+							<import>java.util.*</import>
+							<import>java.text.*</import>
+						</imports>
+						<value>
+							<![CDATA[
+					        	DecimalFormat df = new DecimalFormat("0.00");
+								prop1 = "合计";
+								prop2 = df.format(Double.parseDouble(item1));
+								prop3 = df.format(Double.parseDouble(item2));
+								prop4 = "利润";
+								prop5 = df.format(Double.parseDouble(item3));
+							]]>
+						</value>
+					</format>
+				</subdisplay>
+				<sql preparedstatement="false" datasource="ufdata_003_2014">
+					<select>
+						<value><![CDATA[
+				SELECT convert(varchar(100),dbill_date,23) as dbill_date,
+				csign + '-' + REPLICATE('0', 4 - len(ino_id)) + CAST(ino_id AS VARCHAR) as ino,
+				 a.ccode, b.ccode_name,  cdigest, str(md,20,2) as md, str(mc,20,2) as mc
+				  FROM gl_accvouch a left join code b on a.ccode=b.ccode
+				 WHERE {#condition#}
+				order by dbill_date
+
+						]]></value>
+						<condition name="txt_ccus_id" hidden="true">
+							<value>
+								<![CDATA[ a.ccus_id = '#data#' ]]>
+							</value>
+						</condition>
+					</select>
+				</sql>
+				<format>
+					<imports>
+						<import>com.wabacus.util.*</import>
+						<import>java.text.*</import>
+					</imports>
+					<value>
+						<![CDATA[
+						
+					        DecimalFormat df = new DecimalFormat("0.00");
+							md = df.format(Double.parseDouble(md));
+							mc = df.format(Double.parseDouble(mc));
+						]]>
+					</value>
+				</format>
+			</report>
+		</vpanel>
+	</page>
+
+</applications>
