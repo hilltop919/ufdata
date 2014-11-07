@@ -36,21 +36,7 @@
 		<datasource name="hilltop" type="com.wabacus.config.database.datasource.C3P0DataSource"
 			dbtype="com.wabacus.config.database.type.SQLSERVER2K5">
 			<property name="driver">net.sourceforge.jtds.jdbc.Driver</property>
-			<property name="url">jdbc:jtds:sqlserver://hilltop:1433;DatabaseName=hilltop</property>
-			<property name="user">sa</property>
-			<property name="password">1236</property>
-			
-			<property name="max_size">20</property>   
-  			<property name="min_size">5</property>   
-  			<property name="timeout">100</property>   
-  			<property name="max_statements">100</property>   
-  			<property name="idle_test_period">50</property>   
-  			<property name="acquire_increment">2</property>  
-		</datasource>
-		<datasource name="ufdata_003_2014" type="com.wabacus.config.database.datasource.C3P0DataSource"
-			dbtype="com.wabacus.config.database.type.SQLSERVER2K5">
-			<property name="driver">net.sourceforge.jtds.jdbc.Driver</property>
-			<property name="url">jdbc:jtds:sqlserver://hilltop:1433;DatabaseName=UFDATA_003_2014</property>
+			<property name="url">jdbc:jtds:sqlserver://localhost:1433;DatabaseName=hilltop</property>
 			<property name="user">sa</property>
 			<property name="password">1236</property>
 			

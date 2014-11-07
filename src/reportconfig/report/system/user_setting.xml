@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.wabacus.com ../../xsd/wabacus.applications.xsd">
 
 	<!-- user setting 2014-4-19 -->
-	<page id="user_setting" js="/webresources/script/validate.js">
+	<page id="user_setting" js="/webresources/script/validate.js,js/common.js">
 		<header>${top.header}</header>
 		<vpanel id="common_vpanel" align="center" width="1000px">
 			<report id="title" extends="title.report1">
@@ -45,12 +45,20 @@
 							</option>
 						</inputbox>
 					</col>
+					<col column="default_database" label="默认帐套" br="true">
+						<inputbox type="selectbox" styleproperty="style='width:97%'">
+							<option
+								dataset="@{select param_id,param_value from sys_c_set_parm where param_type='ufdata_database' order by seq}"
+								label="param_value" value="param_id">
+							</option>
+						</inputbox>
+					</col>
 				</display>
 				<sql>
 					<select>
 						<value>
 							<![CDATA[
-					SELECT user_id, user_name, password, group_id, is_enable, department,
+					SELECT user_id, user_name, password, group_id, is_enable, department,default_database,
 					       CASE
 					         WHEN skin IS NULL THEN
 					          '默认'
@@ -78,7 +86,7 @@
 						</params>
 						<value>
 							update
-							sys_c_sec_user(@{skin},lm_user=#{user_id},lm_time=#{current_time})
+							sys_c_sec_user(@{skin},@{default_database},lm_user=#{user_id},lm_time=#{current_time})
 							where user_id=@{user_id__old};
 						</value>
 					</update>
@@ -91,8 +99,52 @@
 					</value>
 				</format>
 			</report>
+
+			<report id="report2" title="切换帐套" type="editablelist2"
+				pagesize="-1" rowselect="single-radiobox">
+				<interceptor>
+					<imports>
+						<import>com.wabacus.system.assistant.*</import>
+					</imports>
+					<beforedisplay-perrow>
+					<![CDATA[
+					String current_database=(String)rrequest.getRequest().getSession().getAttribute("ufdata_database");
+					  if(rowDataBean.getReportTypeObj().getLstReportData()!=null&&rowDataBean.getRowindex()>=0&&rowDataBean.getRowindex()<rowDataBean.getReportTypeObj().getLstReportData().size())
+			        {
+			            String param_id=String.valueOf(rowDataBean.getColData("param_id"));//从中取出param_id列的数据
+			            if(param_id.equals(current_database))
+			            {
+			                rowDataBean.setSelectedRow(true);
+			            }
+			        }
+					]]>
+					</beforedisplay-perrow>
+				</interceptor>
+				<buttons>
+					<button name="button1" position="title" label="确定"
+						extends="${wabacus.button.default}">
+						invokeServerActionForReportData('user_setting','report2','com.hilltop.function.SwitchDatabase',{name:'SELECTEDROW',value:true},null,true,null,null);
+					</button>
+				</buttons>
+				<display>
+					<col column="{sequence:1}" label="序号" width="60px"></col>
+					<col column="param_type" label="参数类别" displaytype="hidden"></col>
+					<col column="param_name" label="描述" displaytype="hidden"></col>
+					<col column="param_id" label="参数ID" align="left" width="130px"></col>
+					<col column="param_value" label="参数值" align="left" width="160px"></col>
+					<col column="{col-rowselect}" label="选择" width="60px"></col>
+				</display>
+				<sql>
+					<select>
+						<value>
+						<![CDATA[select param_type,param_name,param_id,param_value,seq,lm_user,lm_time
+										 from sys_c_set_parm where param_type='ufdata_database' order by seq  ]]>
+						</value>
+					</select>
+				</sql>
+			</report>
 		</vpanel>
-		<footer>${system.footer}</footer> 
+		<footer>${system.footer}</footer>
 	</page>
 
 </applications>

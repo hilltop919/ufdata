@@ -36,17 +36,41 @@
 					<col column="ccusname" label="ccusname" valuestyleproperty="colspan='6'"
 						align="left"></col>
 				</display>
-				<sql preparedstatement="false" datasource="ufdata_003_2014">
+				<sql preparedstatement="false">
 					<select>
 						<value><![CDATA[
-				select '客户名称：' as ccuslabel,ccusname from customer
-				 WHERE {#condition#}
+				SELECT '客户名称：' AS ccuslabel, ccusname
+				  FROM #ufdata_database#.dbo.customer
+				 WHERE {#condition#} 
 
 						]]></value>
-						<condition name="txt_ccus_id" label="客户编号">
+						<condition name="ufdata_database" hidden="true"
+							source="session{ufdata_database}"></condition>
+						<condition name="txt_ccus_id" label="客户编号：">
 							<value>
 								<![CDATA[ ccuscode = '#data#' ]]>
 							</value>
+							<inputbox styleproperty="style='width:200px'">
+								<typeprompt count="15" width="200" casesensitive="false">
+									<promptcol label="ccuscode" title="客户编号" matchmode="anywhere"></promptcol>
+									<promptcol label="ccusname" title="客户名称" matchmode="anywhere"></promptcol>
+									<datasource>
+										<option
+											dataset="@{select ccuscode,ccusname from {#condition#} where {#matchcondition#}}">
+											<datasetconditions>
+												<condition name="ufdata_database" hidden="true"
+													source="session{ufdata_database}">
+													<value>
+														<![CDATA[
+														#data#.dbo.customer
+														]]>
+													</value>
+												</condition>
+											</datasetconditions>
+										</option>
+									</datasource>
+								</typeprompt>
+							</inputbox>
 						</condition>
 					</select>
 				</sql>
@@ -65,9 +89,12 @@
 				</display>
 				<subdisplay>
 					<statitems>
-						<statitem value="sum(cast(md as float))" property="item1"></statitem>
-						<statitem value="sum(cast(mc as float))" property="item2"></statitem>
-						<statitem value="sum(cast(mc as float))-sum(cast(md as float))"
+						<statitem value="sum(cast(isnull(md,0) as float))"
+							property="item1"></statitem>
+						<statitem value="sum(cast(isnull(mc,0) as float))"
+							property="item2"></statitem>
+						<statitem
+							value="sum(cast(isnull(mc,0) as float))-sum(cast(isnull(md,0) as float))"
 							property="item3"></statitem>
 					</statitems>
 					<subrow>
@@ -88,27 +115,53 @@
 						</imports>
 						<value>
 							<![CDATA[
-					        	DecimalFormat df = new DecimalFormat("0.00");
-								prop1 = "合计";
-								prop2 = df.format(Double.parseDouble(item1));
-								prop3 = df.format(Double.parseDouble(item2));
-								prop4 = "利润";
-								prop5 = df.format(Double.parseDouble(item3));
+							item1=item1==null?"0":item1;
+							item2=item2==null?"0":item2;
+							item3=item3==null?"0":item3;
+				        	DecimalFormat df = new DecimalFormat("0.00");
+							prop1 = "合计";
+							prop2 = df.format(Double.parseDouble(item1));
+							prop3 = df.format(Double.parseDouble(item2));
+							prop4 = "利润";
+							prop5 = df.format(Double.parseDouble(item3));
 							]]>
 						</value>
 					</format>
 				</subdisplay>
-				<sql preparedstatement="false" datasource="ufdata_003_2014">
+				<sql preparedstatement="false">
 					<select>
 						<value><![CDATA[
-				SELECT convert(varchar(100),dbill_date,23) as dbill_date,
-				csign + '-' + REPLICATE('0', 4 - len(ino_id)) + CAST(ino_id AS VARCHAR) as ino,
-				 a.ccode, b.ccode_name,  cdigest, str(md,20,2) as md, str(mc,20,2) as mc
-				  FROM gl_accvouch a left join code b on a.ccode=b.ccode
-				 WHERE {#condition#}
-				order by dbill_date
+			SELECT *
+			  FROM (SELECT convert(VARCHAR(100), dbill_date, 23) AS dbill_date,
+			                csign + '-' + REPLICATE('0', 4 - len(ino_id)) +
+			                 CAST(ino_id AS VARCHAR) AS ino, a.ccode, b.ccode_name,
+			                cdigest,
+			                str(CASE
+			                      WHEN a.ccode LIKE '5001%' OR a.ccode LIKE '5051%' THEN
+			                       0
+			                      ELSE
+			                       md
+			                    END,
+			                    20,
+			                    2) AS md,
+			                str(CASE
+			                      WHEN a.ccode LIKE '5401%' OR a.ccode LIKE '5402%' THEN
+			                       0
+			                      ELSE
+			                       mc
+			                    END,
+			                    20,
+			                    2) AS mc
+			           FROM #ufdata_database#.dbo.gl_accvouch a
+			           LEFT JOIN #ufdata_database#.dbo.code b ON a.ccode = b.ccode
+			          WHERE {#condition#}) m
+			 WHERE cast(md as float) + cast(mc as float) <> 0
+			 ORDER BY dbill_date, ino, ccode
+
 
 						]]></value>
+						<condition name="ufdata_database" hidden="true"
+							source="session{ufdata_database}"></condition>
 						<condition name="txt_ccus_id" hidden="true">
 							<value>
 								<![CDATA[ a.ccus_id = '#data#' ]]>
@@ -131,6 +184,7 @@
 					</value>
 				</format>
 			</report>
+			<footer>${ufdata_database}</footer>
 		</vpanel>
 	</page>
 

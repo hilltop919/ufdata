@@ -34,4 +34,14 @@
   		
   		]]>
 	</resource>
+
+	<resource key="ufdata_database" type="com.wabacus.config.resource.TemplateRes">
+  		<![CDATA[
+			<div style='float:right;margin-top:20px'>
+				当前帐套：<font color='blue'><a target="_blank" href="ShowReport.wx?PAGEID=user_setting" title="点击切换帐套"><wx:output value="session{ufdata_database}" /></a></font>
+			</div>
+  		]]>
+	</resource>
+
+
 </resources>

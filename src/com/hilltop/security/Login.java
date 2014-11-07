@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.servlet.http.HttpSession;
 
+import com.hilltop.interceptor.permissions.MenuBuilder;
 import com.wabacus.config.Config;
 import com.wabacus.util.*;
 
@@ -14,7 +15,7 @@ public class Login {
 			HttpSession session) throws SQLException {
 		boolean isLegal = false;
 		Connection conn = Config.getInstance().getDataSource("").getConnection();
-		String sql = " select user_id,user_name,group_id,password,is_enable from sys_c_sec_user where user_id=? and password=? ";
+		String sql = " select user_id,user_name,group_id,password,is_enable,default_database from sys_c_sec_user where user_id=? and password=? ";
 
 		PreparedStatement pstmt = null;
 		try {
@@ -25,12 +26,15 @@ public class Login {
 			while (rs.next()) {
 				String user_name = rs.getString("user_name");
 				String group_id = rs.getString("group_id");
+				String default_database = rs.getString("default_database");
 				if ("Y".equals(rs.getString("is_enable"))) {
 					isLegal = true;
 					// 验证通过后，将用户信息写入session对象，
 					session.setAttribute("user_name", user_name);
 					session.setAttribute("user_id", user_id);
 					session.setAttribute("group_id", group_id);
+					session.setAttribute("ufdata_database", default_database);
+					session.setAttribute("menu_list", MenuBuilder.createMenu(user_id, conn, user_name));
 				}
 			}
 			rs.close();

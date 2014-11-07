@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.servlet.http.HttpSession;
+
 import com.wabacus.config.Config;
 import com.wabacus.system.ReportRequest;
 
@@ -17,8 +19,7 @@ public class MenuBuilder {
 	 * @param rrequest
 	 * @return
 	 */
-	public static String createMenu(String user_id, Connection conn, ReportRequest rrequest) {
-		String login_user = (String) rrequest.getRequest().getSession().getAttribute("user_name");
+	public static String createMenu(String user_id, Connection conn, String login_user) {
 		StringBuffer sql = new StringBuffer();
 		sql.append(" select id, menu_id,menu_type,menu_name,menu_seq,page_id,page_name,url_param,mt_seq  ");
 		sql.append( " from ( ");

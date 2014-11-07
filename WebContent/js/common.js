@@ -2,22 +2,6 @@ function convertToUpperCase(o){
 	document.getElementById(o.id).value=document.getElementById(o.id).value.toUpperCase();
 }
 
-function autoRefreshReport(pageid,componentid){
-	var t=document.getElementById('report_flight_dynamic_display_guid_report0_wxcondition_times');
-	setInterval("refreshComponentDisplay('report_flight_dynamic_display','report0',false)",t.value*60*1000);
-	setInterval("refreshComponentDisplay('report_flight_dynamic_display','report1',false)",t.value*60*1000);
-}
-
-/**
- * 航班动态报表自动刷新onload
- * @param pageid
- * @param componentid
- */
-function autoRefreshDynFlightReport(pageid,componentid){
-	var t=document.getElementById('amdb_report_flight_dynamic_display_guid_report0_wxcondition_times');
-	setInterval("refreshComponentDisplay('amdb_report_flight_dynamic_display','report0',false)",t.value*60*1000);
-	setInterval("refreshComponentDisplay('amdb_report_flight_dynamic_display','report1',false)",t.value*60*1000);
-}
 
 /**2013-6-17 单选列,单个值的获取方法*/
 function getTrObjsValueForSingleValue(trObjsArr)
@@ -40,11 +24,6 @@ function getTrObjsValueForSingleValue(trObjsArr)
 	return str;
 }
 
-/**2013-6-20 刷新page*/
-function refreshPage(datasObj)
-{
-	refreshComponentDisplay(datasObj.pageid,null,true);//刷新整个page
-}
 /**
 * url 目标url(http://www.baidu.com/)
 * arg 需要替换的参数名称

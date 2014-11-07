@@ -8,7 +8,7 @@
 	<header>${top.header}</header>
 		<vpanel id="common_vpanel" align="center" width="1000px">
 		<report id="title" extends="title.report1"></report>
-		<report id="report1" title="人员列表" type="listform" personalizeclass="default" pagesize="10|20|-1" navigate="${navigatepagesizepage1.report3.navigate}" width="1000px">
+		<report id="report1" title="人员列表" type="listform" pagesize="10|20|-1" navigate="${navigatepagesizepage1.report3.navigate}" width="1000px">
 			<interceptor>
 				<imports>
 					<import>java.util.*</import>
@@ -83,8 +83,8 @@
 			</buttons>
 			<display>
 				<col column="{sequence:1}" label="序号" width="100px" />
-				<col column="user_id" label="帐号" width="160px"><inputbox jsvalidate="isNotEmpty(#label#列不允许为空)" styleproperty="style='width:97%'"></inputbox></col>
-				<col column="user_name" label="姓名" width="160px"><inputbox jsvalidate="isNotEmpty(#label#列不允许为空)" styleproperty="style='width:97%'"></inputbox></col>
+				<col column="user_id" label="帐号" width="120px"></col>
+				<col column="user_name" label="姓名" width="120px"><inputbox jsvalidate="isNotEmpty(#label#列不允许为空)" styleproperty="style='width:97%'"></inputbox></col>
 				<col column="password" label="密码" displaytype="hidden"></col>
 				<col column="group_id" label="组别" width="120px">
 					<inputbox type="selectbox" styleproperty="style='width:97%'">
@@ -101,12 +101,20 @@
 					</inputbox>
 				</col>
 				<col column="department" label="部门" width="120px"><inputbox styleproperty="style='width:97%'"></inputbox></col>
+				<col column="default_database" label="默认帐套" width="160px">
+					<inputbox type="selectbox" styleproperty="style='width:97%'">
+						<option
+							dataset="@{select param_id,param_value from sys_c_set_parm where param_type='ufdata_database' order by seq}"
+							label="param_value" value="param_id">
+						</option>
+					</inputbox>
+				</col>
 				<col property="reset_password" column="{non-fromdb}" width="100px" label="操作"></col>
 			</display>
 			<sql>
 				<select>
 					<value>
-							<![CDATA[select user_id,user_name,password,group_id,is_enable,department
+							<![CDATA[select user_id,user_name,password,group_id,is_enable,department,default_database
 											 from sys_c_sec_user
 											 where  {#condition#} order by user_id
 							]]>
@@ -129,7 +137,7 @@
 					</params>
 					<value>
 						insert into
-						sys_c_sec_user(@{user_id},@{user_name},@{password},@{group_id},@{is_enable},@{department},lm_user=#{user_id},lm_time=#{current_time});
+						sys_c_sec_user(@{user_id},@{user_name},@{password},@{group_id},@{is_enable},@{department},@{default_database},lm_user=#{user_id},lm_time=#{current_time});
 					</value>
 				</insert>
 				<update>
@@ -139,11 +147,11 @@
 					</params>
 					<value>
 						update
-						sys_c_sec_user(@{user_name},@{group_id},@{is_enable},@{department},lm_user=#{user_id},lm_time=#{current_time})
+						sys_c_sec_user(@{user_name},@{group_id},@{is_enable},@{department},@{default_database},lm_user=#{user_id},lm_time=#{current_time})
 						where user_id=@{user_id__old};
 					</value>
 				</update>
-				<delete>delete from sys_c_sec_user where user_id=@{user_id};
+				<delete>delete from sys_c_sec_user where user_id=@{user_id__old};
 				</delete>
 			</sql>
 			<format>
